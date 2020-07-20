@@ -102,6 +102,30 @@ Call a second time to restore the original window configuration."
 
 
 
+(defun prot/window-dired-vc-root-left ()
+  "Open root directory of current version-controlled repository
+or the present working directory with `dired' and bespoke window
+parameters.  This is meant as a proof-of-concept function,
+illustrating how to leverage window rules to display a buffer,
+plus a few concomitant extras."
+  (interactive)
+  (let ((dir (if (eq (vc-root-dir) nil)
+                 (dired-noselect default-directory)
+               (dired-noselect (vc-root-dir)))))
+    (display-buffer-in-side-window
+     dir `((side . left)
+           (slot . -1)
+           (window-width . 0.16)
+           (window-parameters . ((no-other-window . t)
+                                 (no-delete-other-windows . t)
+                                 (mode-line-format . (" "
+                                                      mode-line-buffer-identification))))))
+    (with-current-buffer dir
+      (rename-buffer "*Dired-Side*")
+      (setq-local window-size-fixed 'width)))
+  (with-eval-after-load 'ace-window
+    (when (boundp 'aw-ignored-buffers)
+      (add-to-list 'aw-ignored-buffers "*Dired-Side*"))))
 (unless (memq window-system '(nt w32))
   (windmove-default-keybindings 'control))
 
